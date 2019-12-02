@@ -49,11 +49,7 @@ Optional run_program(const size_t state_size, u32 state[state_size])
 			const u32 targetAddress = state[pc + 3];
 
 			// Bounds checks
-			if (operand1Address >= state_size)
-				return no_result;
-			if (operand2Address >= state_size)
-				return no_result;
-			if (targetAddress >= state_size)
+			if (operand1Address >= state_size || operand2Address >= state_size || targetAddress >= state_size)
 				return no_result;
 
 			state[targetAddress] = state[operand1Address] + state[operand2Address];
@@ -65,20 +61,15 @@ Optional run_program(const size_t state_size, u32 state[state_size])
 			const u32 operand2Address = state[pc + 2];
 			const u32 targetAddress = state[pc + 3];
 
-			// Bounds check
-			if (operand1Address >= state_size)
-				return no_result;
-			if (operand2Address >= state_size)
-				return no_result;
-			if (targetAddress >= state_size)
+			// Bounds checks
+			if (operand1Address >= state_size || operand2Address >= state_size || targetAddress >= state_size)
 				return no_result;
 
 			state[targetAddress] = state[operand1Address] * state[operand2Address];
 			break;
 		}
 		default:
-			// Halt and catch fire
-			return no_result;
+			return no_result; // Halt and catch fire
 		}
 	}
 	return ok(state[0]);
