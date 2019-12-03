@@ -6,6 +6,7 @@
 use std::io;
 use std::vec;
 use std::collections::HashSet;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 enum Direction {
@@ -34,16 +35,30 @@ fn main() -> io::Result<()> {
 
 	let origin = Point {x: 0, y: 0};
 
-	let line_0_points = get_visited_points(line_0, origin);
-	let line_1_points = get_visited_points(line_1, origin);
+	let (line_0_points, line_0_steps) = get_visited_points(line_0, origin);
+	let (line_1_points, line_1_steps) = get_visited_points(line_1, origin);
 
-	let min_distance = line_0_points.intersection(&line_1_points)
+	// Part 1
+	let min_distance_to_origin = line_0_points.intersection(&line_1_points)
 			.map(|common_point| origin.manhatten_distance_to(&common_point))
 			.min();
 
-	match min_distance {
-		Some(distance) => println!("Found minimum distance: {}", distance),
+	match min_distance_to_origin {
+		Some(distance) => println!("Part 1: Found minimum distance: {}", distance),
 		None => println!("No intersection found"),
+	}
+
+	// Part 2
+	let min_distance_in_steps = line_0_points.intersection(&line_1_points)
+			.map(|common_point| match (line_0_steps.get(common_point), line_1_steps.get(common_point)) {
+				(Some(s0), Some(s1)) => Some(s0 + s1),
+				_ => None
+			})
+			.min();
+
+	match min_distance_in_steps {
+		Some(Some(distance)) => println!("Part 2: The fewest combined steps the wires must take to reach an intersection: {}", distance),
+		_ => println!("No intersection found"),
 	}
 
 	Ok(())
@@ -55,41 +70,67 @@ fn read_parsed_directions() -> vec::Vec<Direction> {
 	return parse_cable(line.trim().to_string());
 }
 
-fn get_visited_points(directions: vec::Vec<Direction>, origin: Point) -> HashSet<Point> {
+fn get_visited_points(directions: vec::Vec<Direction>, origin: Point) -> (HashSet<Point>, HashMap<Point, u32>) {
 	let mut res = HashSet::new();
+	let mut steps_map = HashMap::new();
 
 	let mut location = origin;
+	let mut current_step_count: u32 = 0;
 
 	for op in directions {
 		match op {
 			Direction::Up{amount} => {
 				for _ in 0..amount {
+					current_step_count += 1;
 					location.y += 1;
-					res.insert(Point {x: location.x, y: location.y});
+					let here = Point {x: location.x, y: location.y};
+
+					res.insert(here);
+					if !steps_map.contains_key(&here) {
+						steps_map.insert(here, current_step_count);
+					}
 				}
 			},
 			Direction::Down{amount} => {
 				for _ in 0..amount {
+					current_step_count += 1;
 					location.y -= 1;
-					res.insert(Point {x: location.x, y: location.y});
+					let here = Point {x: location.x, y: location.y};
+
+					res.insert(here);
+					if !steps_map.contains_key(&here) {
+						steps_map.insert(here, current_step_count);
+					}
 				}
 			},
 			Direction::Left{amount} => {
 				for _ in 0..amount {
+					current_step_count += 1;
 					location.x -= 1;
-					res.insert(Point {x: location.x, y: location.y});
+					let here = Point {x: location.x, y: location.y};
+
+					res.insert(here);
+					if !steps_map.contains_key(&here) {
+						steps_map.insert(here, current_step_count);
+					}
 				}
 			},
 			Direction::Right{amount} => {
 				for _ in 0..amount {
+					current_step_count += 1;
 					location.x += 1;
-					res.insert(Point {x: location.x, y: location.y});
+					let here = Point {x: location.x, y: location.y};
+
+					res.insert(here);
+					if !steps_map.contains_key(&here) {
+						steps_map.insert(here, current_step_count);
+					}
 				}
 			},
 		};
 	}
 
-	return res;
+	return (res, steps_map);
 }
 
 fn parse_cable(line: String) -> vec::Vec<Direction> {
