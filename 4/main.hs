@@ -29,7 +29,7 @@ digits = ['0'..'9']
 is_possible_digit :: String -> Char -> Bool
 is_possible_digit candidate digit = (count digit candidate) == 2
 
-# Ref: https://stackoverflow.com/a/29307068
+-- Ref: https://stackoverflow.com/a/29307068
 count x = length . filter (==x)
 
 -- "the two adjacent matching digits are not part of a larger group of matching digits."
