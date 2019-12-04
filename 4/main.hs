@@ -27,15 +27,15 @@ is_ascending (a:b:xs) = a <= b && is_ascending (b:xs)
 
 digits = ['0'..'9']
 is_possible_digit :: String -> Char -> Bool
-is_possible_digit candidate digit = (isInfixOf [digit, digit] candidate) && not (isInfixOf [digit, digit, digit] candidate)
+is_possible_digit candidate digit = (count digit candidate) == 2
+
+# Ref: https://stackoverflow.com/a/29307068
+count x = length . filter (==x)
 
 -- "the two adjacent matching digits are not part of a larger group of matching digits."
--- We use a trick here:
---     We check if "123446" contains "44" and does not contain "444" (for every digit)
---     It is possible because a valid repetition consists out of two digits. If there is a third, the occurrence is not valid. There has to be at leat one, though.
---     The cases of "112111" or "111211" won't happen because the candidates are also filtered to be ascending.
---     Also, "111111" is invalid.
---     "111233" is valid.
+-- The whole trick is that the password is ordered.
+-- This means that iff there is a specific occurrence of a pair, it cannot occur later in the password
+-- Due to this, we just need to check if there is a character that occurs exactly two times.
 has_equal_adjacent_chars_not_in_cluster :: String -> Bool
 has_equal_adjacent_chars_not_in_cluster candidate = any (candidate `is_possible_digit`) digits
 
