@@ -41,13 +41,13 @@ has_equal_adjacent_chars_not_in_cluster candidate = any (candidate `is_possible_
 
 -- The order in filtering is not relevant.
 -- So we put the filter that eliminates the most candidates first.
-part_1 input = filter is_ascending
-               $ filter has_equal_adjacent_chars
+part_1 input = filter has_equal_adjacent_chars
                $ filter length_6
+               $ filter is_ascending
                $ map show input
 
-part_2 input = filter is_ascending
-               $ filter has_equal_adjacent_chars_not_in_cluster
+part_2 input = filter has_equal_adjacent_chars_not_in_cluster
+               $ filter is_ascending
                $ filter length_6
                $ map show input
 
