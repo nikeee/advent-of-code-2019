@@ -42,23 +42,23 @@ has_equal_adjacent_chars_not_in_cluster candidate = any (candidate `is_possible_
 -- The order in filtering is not relevant.
 -- So we put the filter that eliminates the most candidates first.
 part_1 input = filter is_ascending (
-			filter has_equal_adjacent_chars (
-				filter length_6 (
-					map show input
-				)
-			)
-		)
+                    filter has_equal_adjacent_chars (
+                        filter length_6 (
+                            map show input
+                        )
+                    )
+                )
 
 
 part_2 input = filter is_ascending (
-			filter has_equal_adjacent_chars_not_in_cluster (
-				filter length_6 (
-					map show input
-				)
-			)
-		)
+                    filter has_equal_adjacent_chars_not_in_cluster (
+                        filter length_6 (
+                            map show input
+                        )
+                    )
+                )
 
 main :: IO ()
 main = do
-	putStrLn ("Part 1: " ++ (show (length (part_1 input_range))))
-	putStrLn ("Part 2: " ++ (show (length (part_2 input_range))))
+    putStrLn ("Part 1: " ++ (show (length (part_1 input_range))))
+    putStrLn ("Part 2: " ++ (show (length (part_2 input_range))))
