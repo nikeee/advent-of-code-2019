@@ -30,66 +30,30 @@ func runProgram(state: inout [Int]) -> Int? {
 				pc += 1
 				continue
 			case OpCode.add.rawValue:
-				let operand1AddressOrValue = state[pc + 1]
-				guard let operand1Mode = getParameterMode(instruction: instruction, parameterNumber: 1) else {
+
+				guard let operand1 = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 1, state: state) else {
 					return nil
 				}
-
-				let operand2AddressOrValue = state[pc + 2]
-				guard let operand2Mode = getParameterMode(instruction: instruction, parameterNumber: 2) else {
+				guard let operand2 = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 2, state: state) else {
 					return nil
 				}
-
 				let targetAddress = state[pc + 3] // Always an address
 
-				// Bounds checks
-				if (operand1Mode == ParameterMode.position && operand1AddressOrValue >= state.count)
-					|| (operand2Mode == ParameterMode.position && operand2AddressOrValue >= state.count)
-					|| (targetAddress >= state.count) {
-					return nil
-				}
-
-				let operand1Value = operand1Mode == ParameterMode.position
-														? state[operand1AddressOrValue]
-														: operand1AddressOrValue
-
-				let operand2Value = operand2Mode == ParameterMode.position
-														? state[operand2AddressOrValue]
-														: operand2AddressOrValue
-
-				state[targetAddress] = operand1Value + operand2Value
+				state[targetAddress] = operand1 + operand2
 
 				pc += 4
 			case OpCode.multiply.rawValue:
 
-				let operand1AddressOrValue = state[pc + 1]
-				guard let operand1Mode = getParameterMode(instruction: instruction, parameterNumber: 1) else {
+				guard let operand1 = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 1, state: state) else {
 					return nil
 				}
-
-				let operand2AddressOrValue = state[pc + 2]
-				guard let operand2Mode = getParameterMode(instruction: instruction, parameterNumber: 2) else {
+				guard let operand2 = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 2, state: state) else {
 					return nil
 				}
 
 				let targetAddress = state[pc + 3] // Always an address
 
-				// Bounds checks
-				if (operand1Mode == ParameterMode.position && operand1AddressOrValue >= state.count)
-					|| (operand2Mode == ParameterMode.position && operand2AddressOrValue >= state.count)
-					|| (targetAddress >= state.count) {
-					return nil
-				}
-
-				let operand1Value = operand1Mode == ParameterMode.position
-														? state[operand1AddressOrValue]
-														: operand1AddressOrValue
-
-				let operand2Value = operand2Mode == ParameterMode.position
-														? state[operand2AddressOrValue]
-														: operand2AddressOrValue
-
-				state[targetAddress] = operand1Value * operand2Value
+				state[targetAddress] = operand1 * operand2
 
 				pc += 4
 			case OpCode.input.rawValue:
@@ -110,19 +74,9 @@ func runProgram(state: inout [Int]) -> Int? {
 				pc += 2
 			case OpCode.output.rawValue:
 
-				let sourceAddressOrValue = state[pc + 1]
-				guard let operandMode = getParameterMode(instruction: instruction, parameterNumber: 1) else {
+				guard let value = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 1, state: state) else {
 					return nil
 				}
-
-				// Bounds checks
-				if operandMode == ParameterMode.position && sourceAddressOrValue >= state.count {
-					return nil
-				}
-
-				let value = operandMode == ParameterMode.position
-												? state[sourceAddressOrValue]
-												: sourceAddressOrValue
 
 				print(value)
 
@@ -138,6 +92,27 @@ func runProgram(state: inout [Int]) -> Int? {
 enum ParameterMode: Int {
 	case position = 0
 	case immediate = 1
+}
+
+func getParameterValue(pc: Int, instruction: Int, parameterNumber: Int, state: [Int]) -> Int? {
+	if pc + parameterNumber >= state.count {
+		return nil
+	}
+
+	let operandAddressOrValue = state[pc + parameterNumber]
+
+	guard let mode = getParameterMode(instruction: instruction, parameterNumber: parameterNumber) else {
+		return nil
+	}
+
+	// Bounds checks
+	if mode == ParameterMode.position && operandAddressOrValue >= state.count {
+		return nil
+	}
+
+	return mode == ParameterMode.position
+					? state[operandAddressOrValue]
+					: operandAddressOrValue
 }
 
 func getParameterMode(instruction: Int, parameterNumber: Int) -> ParameterMode? {
