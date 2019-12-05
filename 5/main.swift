@@ -1,7 +1,8 @@
 // Compile:
 // swiftc -o 5.out main.swift
 // Run:
-// ./5.out < input.txt
+// ./5.out < input-1.txt
+// ./5.out < input-2.txt
 
 enum OpCode: Int {
 	case nop = 0 // Not defined in task, usd to make parsing easier
@@ -9,6 +10,10 @@ enum OpCode: Int {
 	case multiply = 2
 	case input = 3
 	case output = 4
+	case jumpIfTrue = 5
+	case jumpIfFalse = 6
+	case lessThan = 7
+	case equals = 8
 	case halt = 99
 }
 
@@ -36,8 +41,9 @@ func runProgram(state: inout [Int]) -> Int? {
 				guard let operand2 = getParameterValue(pc, state, instruction, parameterNumber: 2) else {
 					return nil
 				}
-
-				let targetAddress = state[pc + 3] // Always an address
+				guard let targetAddress = getTargetAddress(pc, state, parameterNumber: 3) else {
+					return nil
+				}
 
 				state[targetAddress] = operand1 + operand2
 
@@ -50,24 +56,22 @@ func runProgram(state: inout [Int]) -> Int? {
 				guard let operand2 = getParameterValue(pc, state, instruction, parameterNumber: 2) else {
 					return nil
 				}
-
-				let targetAddress = state[pc + 3] // Always an address
+				guard let targetAddress = getTargetAddress(pc, state, parameterNumber: 3) else {
+					return nil
+				}
 
 				state[targetAddress] = operand1 * operand2
 
 				pc += 4 // <instruction>, <op1>, <op2>, <target-spec>
 			case OpCode.input.rawValue:
 
-				let targetAddress = state[pc + 1]
-
-				// Bounds checks
-				if targetAddress >= state.count {
-					return nil
-				}
-
 				print("Please enter something:")
 
 				let value = Int(readLine(strippingNewline: true)!)!
+
+				guard let targetAddress = getTargetAddress(pc, state, parameterNumber: 1) else {
+					return nil
+				}
 
 				state[targetAddress] = value
 
@@ -80,7 +84,67 @@ func runProgram(state: inout [Int]) -> Int? {
 
 				print(value)
 
-				pc += 2
+				pc += 2 // <instruction>, <source-spec>
+			case OpCode.jumpIfTrue.rawValue:
+
+				guard let predicate = getParameterValue(pc, state, instruction, parameterNumber: 1) else {
+					return nil
+				}
+
+				if predicate != 0 {
+					guard let jumpTarget = getParameterValue(pc, state, instruction, parameterNumber: 2) else {
+						return nil
+					}
+					pc = jumpTarget
+				} else {
+					// "do nothing" means just step over the entire instruction + parameters
+					pc += 3 // <instruction>, <predicate>, <jump-target>
+				}
+			case OpCode.jumpIfFalse.rawValue:
+
+				guard let predicate = getParameterValue(pc, state, instruction, parameterNumber: 1) else {
+					return nil
+				}
+
+				if predicate == 0 {
+					guard let jumpTarget = getParameterValue(pc, state, instruction, parameterNumber: 2) else {
+						return nil
+					}
+					pc = jumpTarget
+				} else {
+					// "do nothing" means just step over the entire instruction + parameters
+					pc += 3 // <instruction>, <predicate>, <jump-target>
+				}
+			case OpCode.lessThan.rawValue:
+
+				guard let left = getParameterValue(pc, state, instruction, parameterNumber: 1) else {
+					return nil
+				}
+				guard let right = getParameterValue(pc, state, instruction, parameterNumber: 2) else {
+					return nil
+				}
+				guard let targetAddress = getTargetAddress(pc, state, parameterNumber: 3) else {
+					return nil
+				}
+
+				state[targetAddress] = left < right ? 1 : 0
+
+				pc += 4 // <instruction>, <p1>, <p2>, <target>
+			case OpCode.equals.rawValue:
+
+				guard let left = getParameterValue(pc, state, instruction, parameterNumber: 1) else {
+					return nil
+				}
+				guard let right = getParameterValue(pc, state, instruction, parameterNumber: 2) else {
+					return nil
+				}
+				guard let targetAddress = getTargetAddress(pc, state, parameterNumber: 3) else {
+					return nil
+				}
+
+				state[targetAddress] = left == right ? 1 : 0
+
+				pc += 4 // <instruction>, <p1>, <p2>, <target>
 			default:
 				print(":(")
 				return nil // Halt and catch fire
@@ -92,6 +156,21 @@ func runProgram(state: inout [Int]) -> Int? {
 enum ParameterMode: Int {
 	case position = 0
 	case immediate = 1
+}
+
+func getTargetAddress(_ pc: Int, _ state: [Int], parameterNumber: Int) -> Int? {
+	if pc + parameterNumber >= state.count {
+		return nil
+	}
+
+	let targetAddress = state[pc + parameterNumber]
+
+	// Bounds checks, targetAddress won't be writable otherwise
+	if targetAddress >= state.count {
+		return nil
+	}
+
+	return targetAddress
 }
 
 func getParameterValue(_ pc: Int, _ state: [Int], _ instruction: Int, parameterNumber: Int) -> Int? {
