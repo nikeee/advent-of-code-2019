@@ -31,12 +31,13 @@ func runProgram(state: inout [Int]) -> Int? {
 				continue
 			case OpCode.add.rawValue:
 
-				guard let operand1 = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 1, state: state) else {
+				guard let operand1 = getParameterValue(pc, state, instruction, parameterNumber: 1) else {
 					return nil
 				}
-				guard let operand2 = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 2, state: state) else {
+				guard let operand2 = getParameterValue(pc, state, instruction, parameterNumber: 2) else {
 					return nil
 				}
+
 				let targetAddress = state[pc + 3] // Always an address
 
 				state[targetAddress] = operand1 + operand2
@@ -44,10 +45,10 @@ func runProgram(state: inout [Int]) -> Int? {
 				pc += 4
 			case OpCode.multiply.rawValue:
 
-				guard let operand1 = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 1, state: state) else {
+				guard let operand1 = getParameterValue(pc, state, instruction, parameterNumber: 1) else {
 					return nil
 				}
-				guard let operand2 = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 2, state: state) else {
+				guard let operand2 = getParameterValue(pc, state, instruction, parameterNumber: 2) else {
 					return nil
 				}
 
@@ -94,7 +95,7 @@ enum ParameterMode: Int {
 	case immediate = 1
 }
 
-func getParameterValue(pc: Int, instruction: Int, parameterNumber: Int, state: [Int]) -> Int? {
+func getParameterValue(_ pc: Int, _ state: [Int], _ instruction: Int, parameterNumber: Int) -> Int? {
 	if pc + parameterNumber >= state.count {
 		return nil
 	}
