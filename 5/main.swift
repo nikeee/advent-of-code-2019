@@ -27,8 +27,7 @@ func runProgram(state: inout [Int]) -> Int? {
 
 		switch opCode {
 			case OpCode.nop.rawValue:
-				pc += 1
-				continue
+				pc += 1 // <instruction>
 			case OpCode.add.rawValue:
 
 				guard let operand1 = getParameterValue(pc, state, instruction, parameterNumber: 1) else {
@@ -42,7 +41,7 @@ func runProgram(state: inout [Int]) -> Int? {
 
 				state[targetAddress] = operand1 + operand2
 
-				pc += 4
+				pc += 4 // <instruction>, <op1>, <op2>, <target-spec>
 			case OpCode.multiply.rawValue:
 
 				guard let operand1 = getParameterValue(pc, state, instruction, parameterNumber: 1) else {
@@ -56,7 +55,7 @@ func runProgram(state: inout [Int]) -> Int? {
 
 				state[targetAddress] = operand1 * operand2
 
-				pc += 4
+				pc += 4 // <instruction>, <op1>, <op2>, <target-spec>
 			case OpCode.input.rawValue:
 
 				let targetAddress = state[pc + 1]
@@ -72,10 +71,10 @@ func runProgram(state: inout [Int]) -> Int? {
 
 				state[targetAddress] = value
 
-				pc += 2
+				pc += 2 // <instruction>, <target-spec>
 			case OpCode.output.rawValue:
 
-				guard let value = getParameterValue(pc: pc, instruction: instruction, parameterNumber: 1, state: state) else {
+				guard let value = getParameterValue(pc, state, instruction, parameterNumber: 1) else {
 					return nil
 				}
 
