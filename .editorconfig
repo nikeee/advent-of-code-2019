@@ -8,3 +8,6 @@ indent_size = 4
 
 [*.{rs,hs}]
 indent_style = space
+
+[input*.txt]
+insert_final_newline = false
