@@ -41,11 +41,12 @@ as
 select count(*) as answer_part_1 from transitive_orbital_closure;
 
 -- Finding the shortest path from YOU to SAN is more tricky, since the orbit relation is directed.
--- Making the orbit relation undirected would case the transitive closure to increase in size dramatically.
+-- Making the orbit relation undirected would cause the transitive closure to increase in size dramatically.
+
 -- We use a simple trick:
--- Let's pretend YOU and SAN want to meet. They both are in the "satellite" column. So if theay are able to meet (meaing, there is a path connecting the two),
--- then they would have a common target that will be in the "center" column.
--- This means there is an entry in the transitive closure that has SAN as well as YOU in the "satellite"/"dest" column and a common value in the "center"/"source" column.
+-- Let's pretend YOU and SAN want to meet. They both are in the "satellite" column. So if they are able to meet (meaning, there is a path connecting the two),
+-- then they would have a common target that will be in the "center" column. This would be the node where the two *could* meet.
+-- This means there are (at least) to entries in the transitive closure. One for SAN and one for YOU, woth with their own name in "satellite"/"dest" and a common planet in the "center"/"source" column.
 -- We can use that information to join on the transitive closure.
 
 -- The hops needed to go from YOU to SAN are same as the hops that YOU and SAN need from their position to the common point.
