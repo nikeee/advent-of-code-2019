@@ -23,19 +23,46 @@ create table orbits (
 
 create view transitive_orbital_closure
 as
-with recursive
-iterations(x) AS (
-    select count(*) from orbits
-),
-transitive_closure(iteration_count, center, satellite) AS (
-        select 0, center, satellite from orbits
-    union all
-        select iteration_count + 1, A.center, B.satellite
-        from transitive_closure as A join orbits as B
-        on A.satellite = B.center
-        where iteration_count < (select (select x from iterations) * (select x from iterations))
-        order by 1 asc
-)
-select center as source, satellite as dest from transitive_closure order by 1, 2;
+    with recursive
+    iterations(x) AS (
+        select count(*) from orbits
+    ),
+    transitive_closure(hops, center, satellite) AS (
+            select 0, center, satellite from orbits
+        union all
+            select hops + 1, A.center, B.satellite
+            from transitive_closure as A join orbits as B
+            on A.satellite = B.center
+            where hops < (select (select x from iterations) * (select x from iterations))
+            order by 1 asc
+    )
+    select hops, center as source, satellite as dest from transitive_closure order by 1, 2;
 
 select count(*) as answer_part_1 from transitive_orbital_closure;
+
+-- Finding the shortest path from YOU to SAN is more tricky, since the orbit relation is directed.
+-- Making the orbit relation undirected would case the transitive closure to increase in size dramatically.
+-- We use a simple trick:
+-- Let's pretend YOU and SAN want to meet. They both are in the "satellite" column. So if theay are able to meet (meaing, there is a path connecting the two),
+-- then they would have a common target that will be in the "center" column.
+-- This means there is an entry in the transitive closure that has SAN as well as YOU in the "satellite"/"dest" column and a common value in the "center"/"source" column.
+-- We can use that information to join on the transitive closure.
+
+-- The hops needed to go from YOU to SAN are same as the hops that YOU and SAN need from their position to the common point.
+
+-- Turns out, there are indeed multiple paths they could take.
+-- We just select all of them and take the one with the minimum hop count. This is the answer to part 2.
+
+create view paths_from_you_to_santa
+as
+    select
+    *,
+    (my_part.hops + santas_part.hops) as path_length
+    from
+        (select * from transitive_orbital_closure where dest = 'YOU') as my_part
+    join
+        (select * from transitive_orbital_closure where dest = 'SAN') as santas_part
+    on my_part.source = santas_part.source
+    order by my_part.hops + santas_part.hops asc;
+
+select min(path_length) as answer_part_2 from paths_from_you_to_santa;
