@@ -11,9 +11,9 @@
 -- We use SQLite for that.
 
 create table orbits (
-	center text not null,
-	satellite text not null,
-	primary key(center, satellite)
+    center text not null,
+    satellite text not null,
+    primary key(center, satellite)
 );
 
 -- SQLite-specific commands used to import the data
@@ -25,16 +25,16 @@ create view transitive_orbital_closure
 as
 with recursive
 iterations(x) AS (
-	select count(*) from orbits
+    select count(*) from orbits
 ),
 transitive_closure(iteration_count, center, satellite) AS (
-		select 0, center, satellite from orbits
-	union all
-		select iteration_count + 1, A.center, B.satellite
-		from transitive_closure as A join orbits as B
-		on A.satellite = B.center
-		where iteration_count < (select (select x from iterations) * (select x from iterations))
-		order by 1 asc
+        select 0, center, satellite from orbits
+    union all
+        select iteration_count + 1, A.center, B.satellite
+        from transitive_closure as A join orbits as B
+        on A.satellite = B.center
+        where iteration_count < (select (select x from iterations) * (select x from iterations))
+        order by 1 asc
 )
 select center as source, satellite as dest from transitive_closure order by 1, 2;
 
