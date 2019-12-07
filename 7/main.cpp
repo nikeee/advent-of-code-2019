@@ -303,86 +303,42 @@ int main()
 	vector<int> working_memory;
 	int max_output = -1;
 
-	auto active_phase_settings = set<int>();
+	vector<int> phase_settings = {0, 1, 2, 3, 4};
+	sort(phase_settings.begin(), phase_settings.end());
 
-	for (int phase_setting_a = 0; phase_setting_a < 5; ++phase_setting_a)
+	do
 	{
-		if (active_phase_settings.contains(phase_setting_a))
-			continue;
-		active_phase_settings.insert(phase_setting_a);
-
 		working_memory = initial_state; // copy vector (as in the swift solution)
-		auto result_amp_a = run_program(working_memory, {phase_setting_a, 0});
+		auto result_amp_a = run_program(working_memory, {phase_settings[0], 0});
 		if (!result_amp_a.has_value())
 			continue;
 
-		for (int phase_setting_b = 0; phase_setting_b < 5; ++phase_setting_b)
-		{
-			if (active_phase_settings.contains(phase_setting_b))
-				continue;
-			active_phase_settings.insert(phase_setting_b);
+		working_memory = initial_state; // copy vector (as in the swift solution)
+		auto result_amp_b = run_program(working_memory, {phase_settings[1], *result_amp_a});
+		if (!result_amp_b.has_value())
+			continue;
 
-			working_memory = initial_state; // copy vector (as in the swift solution)
-			auto result_amp_b = run_program(working_memory, {phase_setting_b, *result_amp_a});
-			if (!result_amp_b.has_value())
-				continue;
+		working_memory = initial_state; // copy vector (as in the swift solution)
+		auto result_amp_c = run_program(working_memory, {phase_settings[2], *result_amp_b});
+		if (!result_amp_c.has_value())
+			continue;
 
-			for (int phase_setting_c = 0; phase_setting_c < 5; ++phase_setting_c)
-			{
-				if (active_phase_settings.contains(phase_setting_c))
-					continue;
-				active_phase_settings.insert(phase_setting_c);
+		working_memory = initial_state; // copy vector (as in the swift solution)
+		auto result_amp_d = run_program(working_memory, {phase_settings[3], *result_amp_c});
+		if (!result_amp_d.has_value())
+			continue;
 
-				working_memory = initial_state; // copy vector (as in the swift solution)
-				auto result_amp_c = run_program(working_memory, {phase_setting_c, *result_amp_b});
-				if (!result_amp_c.has_value())
-					continue;
+		working_memory = initial_state; // copy vector (as in the swift solution)
+		auto result_amp_e = run_program(working_memory, {phase_settings[4], *result_amp_d});
+		if (!result_amp_e.has_value())
+			continue;
 
-				for (int phase_setting_d = 0; phase_setting_d < 5; ++phase_setting_d)
-				{
-					if (active_phase_settings.contains(phase_setting_d))
-						continue;
-					active_phase_settings.insert(phase_setting_d);
+		cout << phase_settings[0] << " " << phase_settings[1] << " " << phase_settings[2] << " " << phase_settings[3] << " " << phase_settings[4] << " -> " << *result_amp_e << endl;
 
-					working_memory = initial_state; // copy vector (as in the swift solution)
-					auto result_amp_d = run_program(working_memory, {phase_setting_d, *result_amp_c});
-					if (!result_amp_d.has_value())
-						continue;
+		if (*result_amp_e > max_output)
+			max_output = *result_amp_e;
 
-					for (int phase_setting_e = 0; phase_setting_e < 5; ++phase_setting_e)
-					{
-						if (active_phase_settings.contains(phase_setting_e))
-							continue;
-						active_phase_settings.insert(phase_setting_e);
-
-						working_memory = initial_state; // copy vector (as in the swift solution)
-						auto result_amp_e = run_program(working_memory, {phase_setting_e, *result_amp_d});
-
-						if (!result_amp_e.has_value())
-							continue;
-
-						cout << phase_setting_a << " " << phase_setting_b << " " << phase_setting_c << " " << phase_setting_d << " " << phase_setting_e << " -> " << *result_amp_e << endl;
-
-						if (*result_amp_e > max_output)
-						{
-							max_output = *result_amp_e;
-							// max_output_phase_settings = make_tuple(phase_setting_a, phase_setting_b, phase_setting_c, phase_setting_d, phase_setting_e);
-						}
-
-						active_phase_settings.erase(phase_setting_e);
-					}
-
-					active_phase_settings.erase(phase_setting_d);
-				}
-
-				active_phase_settings.erase(phase_setting_c);
-			}
-
-			active_phase_settings.erase(phase_setting_b);
-		}
-
-		active_phase_settings.erase(phase_setting_a);
-	}
+	} while (next_permutation(phase_settings.begin(), phase_settings.end()));
 
 	cout << "max_output: " << max_output << endl;
 	return 0;
