@@ -35,6 +35,21 @@ enum class ParameterMode
 	IMMEDIATE = 1,
 };
 
+struct InvalidMemoryReference : public exception
+{
+	const char *what() const throw()
+	{
+		return "Invalid reference to address in memory.";
+	}
+};
+struct InvalidInstruction : public exception
+{
+	const char *what() const throw()
+	{
+		return "Reached invalid instruction.";
+	}
+};
+
 void parse_string(const string &str, vector<int> &cont, char delim = ',')
 {
 	stringstream ss(str);
@@ -46,7 +61,7 @@ void parse_string(const string &str, vector<int> &cont, char delim = ',')
 	}
 }
 
-optional<ParameterMode> get_parameter_mode(const int instruction, const int parameter_number)
+ParameterMode get_parameter_mode(const int instruction, const int parameter_number)
 {
 	// See solution of day 5 for explanation.
 
@@ -60,47 +75,43 @@ optional<ParameterMode> get_parameter_mode(const int instruction, const int para
 	case 1:
 		return ParameterMode::IMMEDIATE;
 	default:
-		return {};
+		throw InvalidInstruction();
 	}
 }
 
-optional<int> get_parameter_value(const size_t pc, const vector<int> &state, const int instruction, const int parameter_number)
+int get_parameter_value(const size_t pc, const vector<int> &state, const int instruction, const int parameter_number)
 {
 	if ((pc + parameter_number) >= state.size())
-		return {};
+		throw InvalidMemoryReference();
 
 	int operand_address_or_value = state[pc + parameter_number];
 
 	auto mode = get_parameter_mode(instruction, parameter_number);
-	if (!mode.has_value())
-		return {};
 
-	switch (*mode)
+	switch (mode)
 	{
 	case ParameterMode::POSITION:
-
 		return 0 <= operand_address_or_value && (uint)operand_address_or_value < state.size()
 				   ? state[operand_address_or_value]
-				   : (optional<int>)nullopt;
-
+				   : throw InvalidMemoryReference();
 	case ParameterMode::IMMEDIATE:
 		return operand_address_or_value;
 	default:
-		return {};
+		throw InvalidInstruction();
 	}
 }
 
-optional<size_t> get_target_address(const size_t pc, const vector<int> &state, const int parameter_number)
+size_t get_target_address(const size_t pc, const vector<int> &state, const int parameter_number)
 {
 	if ((pc + parameter_number) >= state.size())
-		return {};
+		throw InvalidMemoryReference();
 
 	auto target_address = state[pc + parameter_number];
 
 	// Bounds checks, target_address won't be writable otherwise
 	return 0 <= target_address && (size_t)target_address < state.size()
 			   ? (size_t)target_address
-			   : (optional<size_t>){};
+			   : throw InvalidMemoryReference();
 }
 
 optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
@@ -128,18 +139,10 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 		case OpCode::ADD:
 		{
 			auto operand1 = get_parameter_value(pc, state, instruction, 1);
-			if (!operand1.has_value())
-				return {};
-
 			auto operand2 = get_parameter_value(pc, state, instruction, 2);
-			if (!operand2.has_value())
-				return {};
-
 			auto target_address = get_target_address(pc, state, 3);
-			if (!target_address.has_value())
-				return {};
 
-			state[*target_address] = *operand1 + *operand2;
+			state[target_address] = operand1 + operand2;
 
 			pc += 4; // <instruction>, <op1>, <op2>, <target-spec>
 			continue;
@@ -147,25 +150,16 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 		case OpCode::MULTIPLY:
 		{
 			auto operand1 = get_parameter_value(pc, state, instruction, 1);
-			if (!operand1.has_value())
-				return {};
-
 			auto operand2 = get_parameter_value(pc, state, instruction, 2);
-			if (!operand2.has_value())
-				return {};
-
 			auto target_address = get_target_address(pc, state, 3);
-			if (!target_address.has_value())
-				return {};
 
-			state[*target_address] = *operand1 * *operand2;
+			state[target_address] = operand1 * operand2;
 
 			pc += 4; // <instruction>, <op1>, <op2>, <target-spec>
 			continue;
 		}
 		case OpCode::INPUT:
 		{
-
 			int value;
 
 			if (supplied_input.size() > 0 && supplied_input_index < supplied_input.size())
@@ -181,10 +175,8 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 			}
 
 			auto target_address = get_target_address(pc, state, 1);
-			if (!target_address.has_value())
-				return {};
 
-			state[*target_address] = value;
+			state[target_address] = value;
 
 			pc += 2; // <instruction>, <target-spec>
 			continue;
@@ -192,10 +184,7 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 		case OpCode::OUTPUT:
 		{
 			auto value = get_parameter_value(pc, state, instruction, 1);
-			if (!value.has_value())
-				return {};
-
-			last_output = *value;
+			last_output = value;
 
 			// cout << "Output: " << *value << endl;
 
@@ -205,16 +194,11 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 		case OpCode::JUMP_IF_TRUE:
 		{
 			auto predicate = get_parameter_value(pc, state, instruction, 1);
-			if (!predicate.has_value())
-				return {};
 
-			if (*predicate != 0)
+			if (predicate != 0)
 			{
 				auto jump_target = get_parameter_value(pc, state, instruction, 2);
-				if (!jump_target.has_value())
-					return {};
-
-				pc = *jump_target;
+				pc = jump_target;
 			}
 			else
 			{
@@ -226,16 +210,11 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 		case OpCode::JUMP_IF_FALSE:
 		{
 			auto predicate = get_parameter_value(pc, state, instruction, 1);
-			if (!predicate.has_value())
-				return {};
 
-			if (*predicate == 0)
+			if (predicate == 0)
 			{
 				auto jump_target = get_parameter_value(pc, state, instruction, 2);
-				if (!jump_target.has_value())
-					return {};
-
-				pc = *jump_target;
+				pc = jump_target;
 			}
 			else
 			{
@@ -247,18 +226,10 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 		case OpCode::LESS_THAN:
 		{
 			auto left = get_parameter_value(pc, state, instruction, 1);
-			if (!left.has_value())
-				return {};
-
 			auto right = get_parameter_value(pc, state, instruction, 2);
-			if (!right.has_value())
-				return {};
-
 			auto target_address = get_target_address(pc, state, 3);
-			if (!target_address.has_value())
-				return {};
 
-			state[*target_address] = *left < *right ? 1 : 0;
+			state[target_address] = left < right ? 1 : 0;
 
 			pc += 4; // <instruction>, <p1>, <p2>, <target>
 			continue;
@@ -266,18 +237,10 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 		case OpCode::EQUALS:
 		{
 			auto left = get_parameter_value(pc, state, instruction, 1);
-			if (!left.has_value())
-				return {};
-
 			auto right = get_parameter_value(pc, state, instruction, 2);
-			if (!right.has_value())
-				return {};
-
 			auto target_address = get_target_address(pc, state, 3);
-			if (!target_address.has_value())
-				return {};
 
-			state[*target_address] = *left == *right ? 1 : 0;
+			state[target_address] = left == right ? 1 : 0;
 
 			pc += 4; // <instruction>, <p1>, <p2>, <target>
 			continue;
