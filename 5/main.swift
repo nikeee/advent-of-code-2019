@@ -28,7 +28,7 @@ func runProgram(state: inout [Int]) -> Int? {
 		let instruction = state[pc]
 		let opCode = instruction % 100
 
-		// print("\(pc): \(instruction)")
+		// print("\(pc): \(instruction) (\(opCode))")
 
 		switch opCode {
 			case OpCode.nop.rawValue:
