@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <set>
 #include <optional>
 #include <cmath>
 
@@ -102,9 +103,11 @@ optional<size_t> get_target_address(const size_t pc, const vector<int> &state, c
 			   : (optional<size_t>){};
 }
 
-optional<int> run_program(vector<int> &state)
+optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 {
 	optional<int> last_output;
+
+	size_t supplied_input_index = 0;
 
 	size_t pc = 0;
 	while (
@@ -162,10 +165,20 @@ optional<int> run_program(vector<int> &state)
 		}
 		case OpCode::INPUT:
 		{
-			cout << "Please enter something:" << endl;
 
 			int value;
-			cin >> value;
+
+			if (supplied_input.size() > 0 && supplied_input_index < supplied_input.size())
+			{
+				// cout << "Using program-supplied input value: " << supplied_input[supplied_input_index] << endl;
+				value = supplied_input[supplied_input_index];
+				++supplied_input_index;
+			}
+			else
+			{
+				cout << "Please enter something:" << endl;
+				cin >> value;
+			}
 
 			auto target_address = get_target_address(pc, state, 1);
 			if (!target_address.has_value())
@@ -184,7 +197,7 @@ optional<int> run_program(vector<int> &state)
 
 			last_output = *value;
 
-			cout << "Output: " << *value << endl;
+			// cout << "Output: " << *value << endl;
 
 			pc += 2; // <instruction>, <target-spec>
 			continue;
@@ -287,13 +300,90 @@ int main()
 	vector<int> initial_state;
 	parse_string(initial_sate_input, initial_state);
 
-	auto working_memory = initial_state; // copy vector (as in the swift solution)
-	auto result = run_program(working_memory);
+	vector<int> working_memory;
+	int max_output = -1;
 
-	if (result.has_value())
-		cout << "Result: " << *result << endl;
-	else
-		cout << "Program did not return anything." << endl;
+	auto active_phase_settings = set<int>();
 
+	for (int phase_setting_a = 0; phase_setting_a < 5; ++phase_setting_a)
+	{
+		if (active_phase_settings.contains(phase_setting_a))
+			continue;
+		active_phase_settings.insert(phase_setting_a);
+
+		working_memory = initial_state; // copy vector (as in the swift solution)
+		auto result_amp_a = run_program(working_memory, {phase_setting_a, 0});
+		if (!result_amp_a.has_value())
+			continue;
+
+		for (int phase_setting_b = 0; phase_setting_b < 5; ++phase_setting_b)
+		{
+			if (active_phase_settings.contains(phase_setting_b))
+				continue;
+			active_phase_settings.insert(phase_setting_b);
+
+			working_memory = initial_state; // copy vector (as in the swift solution)
+			auto result_amp_b = run_program(working_memory, {phase_setting_b, *result_amp_a});
+			if (!result_amp_b.has_value())
+				continue;
+
+			for (int phase_setting_c = 0; phase_setting_c < 5; ++phase_setting_c)
+			{
+				if (active_phase_settings.contains(phase_setting_c))
+					continue;
+				active_phase_settings.insert(phase_setting_c);
+
+				working_memory = initial_state; // copy vector (as in the swift solution)
+				auto result_amp_c = run_program(working_memory, {phase_setting_c, *result_amp_b});
+				if (!result_amp_c.has_value())
+					continue;
+
+				for (int phase_setting_d = 0; phase_setting_d < 5; ++phase_setting_d)
+				{
+					if (active_phase_settings.contains(phase_setting_d))
+						continue;
+					active_phase_settings.insert(phase_setting_d);
+
+					working_memory = initial_state; // copy vector (as in the swift solution)
+					auto result_amp_d = run_program(working_memory, {phase_setting_d, *result_amp_c});
+					if (!result_amp_d.has_value())
+						continue;
+
+					for (int phase_setting_e = 0; phase_setting_e < 5; ++phase_setting_e)
+					{
+						if (active_phase_settings.contains(phase_setting_e))
+							continue;
+						active_phase_settings.insert(phase_setting_e);
+
+						working_memory = initial_state; // copy vector (as in the swift solution)
+						auto result_amp_e = run_program(working_memory, {phase_setting_e, *result_amp_d});
+
+						if (!result_amp_e.has_value())
+							continue;
+
+						cout << phase_setting_a << " " << phase_setting_b << " " << phase_setting_c << " " << phase_setting_d << " " << phase_setting_e << " -> " << *result_amp_e << endl;
+
+						if (*result_amp_e > max_output)
+						{
+							max_output = *result_amp_e;
+							// max_output_phase_settings = make_tuple(phase_setting_a, phase_setting_b, phase_setting_c, phase_setting_d, phase_setting_e);
+						}
+
+						active_phase_settings.erase(phase_setting_e);
+					}
+
+					active_phase_settings.erase(phase_setting_d);
+				}
+
+				active_phase_settings.erase(phase_setting_c);
+			}
+
+			active_phase_settings.erase(phase_setting_b);
+		}
+
+		active_phase_settings.erase(phase_setting_a);
+	}
+
+	cout << "max_output: " << max_output << endl;
 	return 0;
 }
