@@ -50,15 +50,13 @@ struct InvalidInstruction : public exception
 	}
 };
 
-void parse_string(const string &str, vector<int> &cont, char delim = ',')
+vector<int> get_input_program(char delimiter = ',')
 {
-	stringstream ss(str);
+	vector<int> res;
 	string token;
-	while (getline(ss, token, delim))
-	{
-		int int_token = stoi(token);
-		cont.push_back(int_token);
-	}
+	while (getline(cin, token, delimiter))
+		res.push_back(stoi(token));
+	return res;
 }
 
 ParameterMode get_parameter_mode(const int instruction, const int parameter_number)
@@ -68,15 +66,9 @@ ParameterMode get_parameter_mode(const int instruction, const int parameter_numb
 	int p = pow(10, 1 + parameter_number);
 	int mode = (instruction / p) % 10;
 
-	switch (mode)
-	{
-	case 0:
-		return ParameterMode::POSITION;
-	case 1:
-		return ParameterMode::IMMEDIATE;
-	default:
-		throw InvalidInstruction();
-	}
+	return (int)ParameterMode::POSITION <= mode && mode <= (int)ParameterMode::IMMEDIATE
+			   ? (ParameterMode)mode
+			   : throw InvalidInstruction();
 }
 
 int get_parameter_value(const size_t pc, const vector<int> &state, const int instruction, const int parameter_number)
@@ -246,8 +238,9 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 			continue;
 		}
 		default:
-			cout << (int)op_code << " :(" << endl;
-			return {}; // Halt and catch fire
+			// Halt and catch fire
+			cout << "Unable to handle: " << (int)op_code << " :(" << endl;
+			throw InvalidInstruction();
 		}
 	}
 
@@ -256,12 +249,7 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 
 int main()
 {
-
-	string initial_sate_input;
-	getline(cin, initial_sate_input);
-
-	vector<int> initial_state;
-	parse_string(initial_sate_input, initial_state);
+	vector<int> initial_state = get_input_program();
 
 	vector<int> working_memory;
 	int max_output = -1;
@@ -271,27 +259,27 @@ int main()
 
 	do
 	{
-		working_memory = initial_state; // copy vector (as in the swift solution)
+		working_memory = initial_state;
 		auto result_amp_a = run_program(working_memory, {phase_settings[0], 0});
 		if (!result_amp_a.has_value())
 			continue;
 
-		working_memory = initial_state; // copy vector (as in the swift solution)
+		working_memory = initial_state;
 		auto result_amp_b = run_program(working_memory, {phase_settings[1], *result_amp_a});
 		if (!result_amp_b.has_value())
 			continue;
 
-		working_memory = initial_state; // copy vector (as in the swift solution)
+		working_memory = initial_state;
 		auto result_amp_c = run_program(working_memory, {phase_settings[2], *result_amp_b});
 		if (!result_amp_c.has_value())
 			continue;
 
-		working_memory = initial_state; // copy vector (as in the swift solution)
+		working_memory = initial_state;
 		auto result_amp_d = run_program(working_memory, {phase_settings[3], *result_amp_c});
 		if (!result_amp_d.has_value())
 			continue;
 
-		working_memory = initial_state; // copy vector (as in the swift solution)
+		working_memory = initial_state;
 		auto result_amp_e = run_program(working_memory, {phase_settings[4], *result_amp_d});
 		if (!result_amp_e.has_value())
 			continue;
