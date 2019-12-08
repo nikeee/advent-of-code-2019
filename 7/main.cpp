@@ -259,35 +259,38 @@ int main()
 
 	do
 	{
-		working_memory = initial_state;
-		auto result_amp_a = run_program(working_memory, {phase_settings[0], 0});
-		if (!result_amp_a.has_value())
+		vector<vector<int>> amplifier_states = {
+			initial_state,
+			initial_state,
+			initial_state,
+			initial_state,
+			initial_state,
+		};
+
+		auto result_amp_0 = run_program(amplifier_states[0], {phase_settings[0], 0});
+		if (!result_amp_0.has_value())
 			continue;
 
-		working_memory = initial_state;
-		auto result_amp_b = run_program(working_memory, {phase_settings[1], *result_amp_a});
-		if (!result_amp_b.has_value())
+		auto result_amp_1 = run_program(amplifier_states[1], {phase_settings[1], *result_amp_0});
+		if (!result_amp_1.has_value())
 			continue;
 
-		working_memory = initial_state;
-		auto result_amp_c = run_program(working_memory, {phase_settings[2], *result_amp_b});
-		if (!result_amp_c.has_value())
+		auto result_amp_2 = run_program(amplifier_states[2], {phase_settings[2], *result_amp_1});
+		if (!result_amp_2.has_value())
 			continue;
 
-		working_memory = initial_state;
-		auto result_amp_d = run_program(working_memory, {phase_settings[3], *result_amp_c});
-		if (!result_amp_d.has_value())
+		auto result_amp_3 = run_program(amplifier_states[3], {phase_settings[3], *result_amp_2});
+		if (!result_amp_3.has_value())
 			continue;
 
-		working_memory = initial_state;
-		auto result_amp_e = run_program(working_memory, {phase_settings[4], *result_amp_d});
-		if (!result_amp_e.has_value())
+		auto result_amp_4 = run_program(amplifier_states[4], {phase_settings[4], *result_amp_3});
+		if (!result_amp_4.has_value())
 			continue;
 
-		cout << phase_settings[0] << " " << phase_settings[1] << " " << phase_settings[2] << " " << phase_settings[3] << " " << phase_settings[4] << " -> " << *result_amp_e << endl;
+		cout << phase_settings[0] << " " << phase_settings[1] << " " << phase_settings[2] << " " << phase_settings[3] << " " << phase_settings[4] << " -> " << *result_amp_4 << endl;
 
-		if (*result_amp_e > max_output)
-			max_output = *result_amp_e;
+		if (*result_amp_4 > max_output)
+			max_output = *result_amp_4;
 
 	} while (next_permutation(phase_settings.begin(), phase_settings.end()));
 
