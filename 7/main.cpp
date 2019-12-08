@@ -9,7 +9,8 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
-#include <set>
+#include <queue>
+#include <variant>
 #include <optional>
 #include <cmath>
 
@@ -106,13 +107,15 @@ size_t get_target_address(const size_t pc, const vector<int> &state, const int p
 			   : throw InvalidMemoryReference();
 }
 
-optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
+struct ExecutionState
+{
+	size_t pc;
+};
+
+variant<optional<int>, ExecutionState> run_program(vector<int> &state, size_t &pc, queue<int> &input_queue, queue<int> &output_queue)
 {
 	optional<int> last_output;
 
-	size_t supplied_input_index = 0;
-
-	size_t pc = 0;
 	while (
 		pc < state.size() && state[pc] != (int)OpCode::HALT)
 	{
@@ -152,19 +155,14 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 		}
 		case OpCode::INPUT:
 		{
-			int value;
+			if (input_queue.size() == 0)
+			{
+				// We have no data provided by another amplifier. We exit here and continue later.
+				return ExecutionState{pc};
+			}
 
-			if (supplied_input.size() > 0 && supplied_input_index < supplied_input.size())
-			{
-				// cout << "Using program-supplied input value: " << supplied_input[supplied_input_index] << endl;
-				value = supplied_input[supplied_input_index];
-				++supplied_input_index;
-			}
-			else
-			{
-				cout << "Please enter something:" << endl;
-				cin >> value;
-			}
+			int value = input_queue.front();
+			input_queue.pop();
 
 			auto target_address = get_target_address(pc, state, 1);
 
@@ -178,7 +176,7 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 			auto value = get_parameter_value(pc, state, instruction, 1);
 			last_output = value;
 
-			// cout << "Output: " << *value << endl;
+			output_queue.push(value);
 
 			pc += 2; // <instruction>, <target-spec>
 			continue;
@@ -249,30 +247,48 @@ optional<int> run_program(vector<int> &state, vector<int> supplied_input = {})
 
 int main()
 {
-	vector<int> initial_state = get_input_program();
+	const vector<int> initial_state = get_input_program();
 
 	vector<int> working_memory;
 	int max_output = -1;
 
-	vector<int> phase_settings = {0, 1, 2, 3, 4};
+	vector<int> phase_settings = {5, 6, 7, 8, 9};
 	sort(phase_settings.begin(), phase_settings.end());
 
 	do
 	{
 		vector<vector<int>> amplifier_states = {initial_state, initial_state, initial_state, initial_state, initial_state};
-		vector<int> results = {0, 0, 0, 0, 0};
+		vector<queue<int>> outputs = {
+			queue<int>({phase_settings[1]}),
+			queue<int>({phase_settings[2]}),
+			queue<int>({phase_settings[3]}),
+			queue<int>({phase_settings[4]}),
+			queue<int>({phase_settings[0], 0}),
+		};
+		vector<size_t> pcs = {0, 0, 0, 0, 0};
 
-		results[0] = *run_program(amplifier_states[0], {phase_settings[0], 0});
-		results[1] = *run_program(amplifier_states[1], {phase_settings[1], results[0]});
-		results[2] = *run_program(amplifier_states[2], {phase_settings[2], results[1]});
-		results[3] = *run_program(amplifier_states[3], {phase_settings[3], results[2]});
-		results[4] = *run_program(amplifier_states[4], {phase_settings[4], results[3]});
+		optional<int> halting_value;
+		do
+		{
+			variant<optional<int>, ExecutionState> res;
+			res = run_program(amplifier_states[0], pcs[0], outputs[4], outputs[0]);
+			res = run_program(amplifier_states[1], pcs[1], outputs[0], outputs[1]);
+			res = run_program(amplifier_states[2], pcs[2], outputs[1], outputs[2]);
+			res = run_program(amplifier_states[3], pcs[3], outputs[2], outputs[3]);
+			res = run_program(amplifier_states[4], pcs[4], outputs[3], outputs[4]);
 
-		cout << phase_settings[0] << " " << phase_settings[1] << " " << phase_settings[2] << " " << phase_settings[3] << " " << phase_settings[4] << " -> " << results[4] << endl;
+			if (holds_alternative<optional<int>>(res))
+			{
+				halting_value = get<optional<int>>(res);
 
-		if (results[4] > max_output)
-			max_output = results[4];
+				if (!halting_value.has_value())
+					continue;
 
+				if (*halting_value > max_output)
+					max_output = *halting_value;
+			}
+
+		} while (!halting_value.has_value());
 	} while (next_permutation(phase_settings.begin(), phase_settings.end()));
 
 	cout << "max_output: " << max_output << endl;
