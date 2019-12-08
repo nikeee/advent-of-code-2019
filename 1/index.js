@@ -1,7 +1,10 @@
 #!/usr/bin/env nodejs
 
-// Run with:
-// ./index.js
+// Run:
+//     ./index.js
+// Runtime version:
+//     node --version
+//     v13.3.0
 
 const { createInterface } = require("readline");
 

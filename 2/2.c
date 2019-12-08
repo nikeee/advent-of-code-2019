@@ -1,7 +1,10 @@
-// Compile with:
-// gcc -O3 -Wall -Wextra -o 2.out 2.c
-// Run with:
-// ./2.out
+// Compile:
+//     gcc -O3 -Wall -Wextra -o 2.out 2.c
+// Run:
+//     ./2.out
+// Compiler version:
+//     gcc --version
+//     gcc (Ubuntu 9.2.1-9ubuntu2) 9.2.1 20191008
 
 #include <stdlib.h>
 #include <stdio.h>

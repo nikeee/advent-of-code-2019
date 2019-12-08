@@ -1,8 +1,11 @@
 // Compile:
-// swiftc -o 5.out main.swift
+//     swiftc -o 5.out main.swift
 // Run:
-// ./5.out < input-1.txt
-// ./5.out < input-2.txt
+//     ./5.out < input-1.txt
+//     ./5.out < input-2.txt
+// Compiler version:
+//     swiftc --version
+//     Swift version 5.1 (swift-5.1.2-RELEASE)
 
 enum OpCode: Int {
 	case nop = 0 // Not defined in task, usd to make parsing easier

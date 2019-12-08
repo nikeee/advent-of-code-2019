@@ -1,7 +1,10 @@
 // Compile:
-// rustc -O -o 3.out main.rs
+//     rustc -O -o 3.out main.rs
 // Run:
-// ./3.out < input.txt
+//     ./3.out < input.txt
+// Compiler version:
+//     rustc --version
+//     rustc 1.39.0 (4560ea788 2019-11-04)
 
 use std::{collections::HashMap, error::Error, io};
 

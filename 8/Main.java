@@ -1,7 +1,10 @@
 // Compile:
-// javac Main.java
+//     javac Main.java
 // Run:
-// java Main < input.txt
+//     java Main < input.txt
+// Compiler version:
+//     javac --version
+//     javac 11.0.5-ea
 
 import java.util.*;
 import java.util.function.Function;

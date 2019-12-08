@@ -1,5 +1,9 @@
 -- Run:
--- sqlite3 :memory: < input.txt
+--     sqlite3 :memory: < input.txt
+-- Runtime version:
+--     sqlite3 --version
+--     3.29.0 2019-07-10 17:32:03 fc82b73eaac8b36950e527f12c4b5dc1e147e6f4ad2217ae43ad82882a88alt1
+
 
 -- Basically, the input defines a relation where the first char defines the center
 -- and the second char defined the satelliting object

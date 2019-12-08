@@ -1,7 +1,10 @@
 -- Compile:
--- ghc -O3 -o 4.out main.hs
+--     ghc -O3 -o 4.out main.hs
 -- Run:
--- ./4.out
+--     ./4.out
+-- Compiler version:
+--     ghc --version
+--     The Glorious Glasgow Haskell Compilation System, version 8.8.1
 
 import Data.List
 

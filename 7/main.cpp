@@ -1,7 +1,11 @@
 // Compile:
-// g++ -std=c++17 -O3 -Wall -Wextra -o 7.out main.cpp
+//     g++ -std=c++17 -O3 -Wall -Wextra -o 7.out main.cpp
 // Run:
-// ./7.out < input.txt
+//     ./7.out < input.txt
+// Compiler version:
+//     g++ --version
+//     g++ (Ubuntu 9.2.1-9ubuntu2) 9.2.1 20191008
+
 
 #include <iostream>
 #include <string>
