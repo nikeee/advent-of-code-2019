@@ -42,7 +42,7 @@ public class Main {
 		for (int i = 0; i < numbers.length; ++i) {
 			var layer = i / PIXELS_PER_LAYER;
 			if (layer >= layers.size()) {
-				layers.add(new int[IMAGE_WIDTH][IMAGE_HEIGHT]);
+				layers.add(new int[IMAGE_HEIGHT][IMAGE_WIDTH]);
 			}
 
 			var l = layers.get(layer);
@@ -50,7 +50,7 @@ public class Main {
 			var x = i % IMAGE_WIDTH;
 			var y = (i / IMAGE_WIDTH) % (IMAGE_HEIGHT);
 
-			l[x][y] = numbers[i];
+			l[y][x] = numbers[i];
 		}
 
 		return layers;
