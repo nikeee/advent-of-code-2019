@@ -13,3 +13,4 @@ To see how to run the solutions of each individual day, look at its main source 
 | 4   | [Secure Container](https://adventofcode.com/2019/day/4)                   | [Haskell](4)      |
 | 5   | [Sunny with a Chance of Asteroids](https://adventofcode.com/2019/day/5)   | [Swift](5)        |
 | 6   | [Universal Orbit Map](https://adventofcode.com/2019/day/6)                | [SQL](6)          |
+| 7   | [Amplification Circuit](https://adventofcode.com/2019/day/7)              | [C++](7)          |
