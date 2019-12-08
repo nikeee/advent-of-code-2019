@@ -36,13 +36,15 @@ public class Main {
 	}
 
 	static void printImage(int[][] image) {
+		System.out.println();
 		for (int[] column : image) {
 			for (int pixel : column) {
-				var pre = pixel == 1 ? "\u001B[40m" : "\u001B[107m";
-				System.out.print(pre + " " + "\u001B[0m");
+				var content = pixel == 1 ? " " : "█";
+				System.out.print(content);
 			}
 			System.out.println();
 		}
+		System.out.println();
 	}
 
 	static int[][] mergeLayers(List<int[][]> layers) {
