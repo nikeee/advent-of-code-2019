@@ -1,7 +1,8 @@
 // Compile:
 //     go build -o 9.out main.go
 // Run:
-//     ./9.out < input.txt
+//     ./9.out < input-1.txt
+//     ./9.out < input-2.txt
 // Compiler version:
 //     go version
 //     go version go1.13.1 linux/amd64
@@ -207,19 +208,21 @@ func getTargetAddress(pc int,  relativeBase int, state []int64, instruction int6
 		return 0, err
 	}
 
-	/*
-	if mode == relative && (int(operandAddressOrValue) + relativeBase < 0 || operandAddressOrValue + int64(relativeBase) >= int64(len(state))) {
-		return 0, errors.New("operandAddressOrValue out of bounds")
-	}
-	*/
-
-	// TODO: Bounds checks for relative addresses
-
 	switch mode {
 	case position:
-		return state[pc + parameterNumber], nil
+		res := state[pc + parameterNumber]
+		if 0 <= res && res < int64(len(state)) {
+			return state[pc + parameterNumber], nil
+		}
+		return 0, errors.New("out of bounds")
 	case relative:
-		return state[pc + parameterNumber] + int64(relativeBase), nil
+		offset := state[pc + parameterNumber]
+		res := offset + int64(relativeBase)
+
+		if 0 <= res && res < int64(len(state)) {
+			return res, nil
+		}
+		return 0, errors.New("out of bounds")
 	default:
 		return 0, errors.New("unsupported parameter mode")
 	}
