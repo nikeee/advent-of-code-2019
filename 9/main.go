@@ -40,7 +40,7 @@ func runProgram(state []int64) error {
 		instruction := state[pc]
 		opCode := instruction % 100
 
-		fmt.Printf("%d: %d (%d)\n", pc, instruction, opCode)
+		// fmt.Printf("%d: %d (%d)\n", pc, instruction, opCode)
 
 		switch OpCode(opCode) {
 		case nop:
