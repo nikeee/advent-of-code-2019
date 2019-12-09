@@ -27,31 +27,33 @@ const (
 	jumpIfFalse OpCode = 6
 	lessThan OpCode = 7
 	equals OpCode = 8
+	setRelativeBase OpCode = 9
 	halt OpCode = 99
 );
 
 func runProgram(state []int64) error {
 	pc := 0
+	relativeBase := 0
 
 	for pc < len(state) && OpCode(state[pc]) != halt {
 		instruction := state[pc]
 		opCode := instruction % 100
 
-		// fmt.Printf("%d: %d (%d)\n", pc, instruction, opCode)
+		fmt.Printf("%d: %d (%d)\n", pc, instruction, opCode)
 
 		switch OpCode(opCode) {
 		case nop:
 			pc += 1 // <instruction>
 		case add:
-			operand1, err := getParameterValue(pc, state, instruction, 1)
+			operand1, err := getParameterValue(pc, relativeBase, state, instruction, 1)
 			if err != nil {
 				return err
 			}
-			operand2, err := getParameterValue(pc, state, instruction, 2)
+			operand2, err := getParameterValue(pc, relativeBase, state, instruction, 2)
 			if err != nil {
 				return err
 			}
-			targetAddress, err := getTargetAddress(pc, state, 3)
+			targetAddress, err := getTargetAddress(pc, relativeBase, state, instruction, 3)
 			if err != nil {
 				return err
 			}
@@ -60,15 +62,15 @@ func runProgram(state []int64) error {
 
 			pc += 4 // <instruction>, <op1>, <op2>, <target-spec>
 		case multiply:
-			operand1, err := getParameterValue(pc, state, instruction, 1)
+			operand1, err := getParameterValue(pc, relativeBase, state, instruction, 1)
 			if err != nil {
 				return err
 			}
-			operand2, err := getParameterValue(pc, state, instruction, 2)
+			operand2, err := getParameterValue(pc, relativeBase, state, instruction, 2)
 			if err != nil {
 				return err
 			}
-			targetAddress, err := getTargetAddress(pc, state, 3)
+			targetAddress, err := getTargetAddress(pc, relativeBase, state, instruction, 3)
 			if err != nil {
 				return err
 			}
@@ -85,7 +87,7 @@ func runProgram(state []int64) error {
 				return err
 			}
 
-			targetAddress, err := getTargetAddress(pc, state, 1)
+			targetAddress, err := getTargetAddress(pc, relativeBase, state, instruction, 1)
 			if err != nil {
 				return err
 			}
@@ -93,7 +95,7 @@ func runProgram(state []int64) error {
 
 			pc += 2 // <instruction>, <target-spec>
 		case output:
-			value, err := getParameterValue(pc, state, instruction, 1)
+			value, err := getParameterValue(pc, relativeBase, state, instruction, 1)
 			if err != nil {
 				return err
 			}
@@ -102,13 +104,13 @@ func runProgram(state []int64) error {
 
 			pc += 2 // <instruction>, <source-spec>
 		case jumpIfTrue:
-			predicate, err := getParameterValue(pc, state, instruction, 1)
+			predicate, err := getParameterValue(pc, relativeBase, state, instruction, 1)
 			if err != nil {
 				return err
 			}
 
 			if predicate != 0 {
-				jumpTarget, err := getParameterValue(pc, state, instruction, 2)
+				jumpTarget, err := getParameterValue(pc, relativeBase, state, instruction, 2)
 				if err != nil {
 					return err
 				}
@@ -118,13 +120,13 @@ func runProgram(state []int64) error {
 				pc += 3 // <instruction>, <predicate>, <jump-target>
 			}
 		case jumpIfFalse:
-			predicate, err := getParameterValue(pc, state, instruction, 1)
+			predicate, err := getParameterValue(pc, relativeBase, state, instruction, 1)
 			if err != nil {
 				return err
 			}
 
 			if predicate == 0 {
-				jumpTarget, err := getParameterValue(pc, state, instruction, 2)
+				jumpTarget, err := getParameterValue(pc, relativeBase, state, instruction, 2)
 				if err != nil {
 					return err
 				}
@@ -134,15 +136,15 @@ func runProgram(state []int64) error {
 				pc += 3 // <instruction>, <predicate>, <jump-target>
 			}
 		case lessThan:
-			left, err := getParameterValue(pc, state, instruction, 1)
+			left, err := getParameterValue(pc, relativeBase, state, instruction, 1)
 			if err != nil {
 				return err
 			}
-			right, err := getParameterValue(pc, state, instruction, 2)
+			right, err := getParameterValue(pc, relativeBase, state, instruction, 2)
 			if err != nil {
 				return err
 			}
-			targetAddress, err := getTargetAddress(pc, state, 3)
+			targetAddress, err := getTargetAddress(pc, relativeBase, state, instruction, 3)
 			if err != nil {
 				return err
 			}
@@ -155,15 +157,15 @@ func runProgram(state []int64) error {
 
 			pc += 4 // <instruction>, <p1>, <p2>, <target>
 		case equals:
-			left, err := getParameterValue(pc, state, instruction, 1)
+			left, err := getParameterValue(pc, relativeBase, state, instruction, 1)
 			if err != nil {
 				return err
 			}
-			right, err := getParameterValue(pc, state, instruction, 2)
+			right, err := getParameterValue(pc, relativeBase, state, instruction, 2)
 			if err != nil {
 				return err
 			}
-			targetAddress, err := getTargetAddress(pc, state, 3)
+			targetAddress, err := getTargetAddress(pc, relativeBase, state, instruction, 3)
 			if err != nil {
 				return err
 			}
@@ -175,6 +177,16 @@ func runProgram(state []int64) error {
 			}
 
 			pc += 4 // <instruction>, <p1>, <p2>, <target>
+
+		case setRelativeBase:
+			newRelativeBase, err := getParameterValue(pc, relativeBase, state, instruction, 1)
+			if err != nil {
+				return err
+			}
+
+			relativeBase += int(newRelativeBase)
+
+			pc += 2; // <instruction> <value>
 		case halt:
 			return nil
 		default:
@@ -185,28 +197,42 @@ func runProgram(state []int64) error {
 	return nil
 }
 
-func getTargetAddress(pc int, state []int64, parameterNumber int) (int64, error) {
+func getTargetAddress(pc int,  relativeBase int, state []int64, instruction int64, parameterNumber int) (int64, error) {
 	if (pc + parameterNumber) >= len(state) {
 		return 0, errors.New("pc + parameterNumber out of bounds")
 	}
 
-	targetAddress := state[pc + parameterNumber]
-
-	// Bounds checks, targetAddress won't be writable otherwise
-	if 0 <= targetAddress || targetAddress < int64(len(state)) {
-		return targetAddress, nil
+	mode, err := getParameterMode(instruction, parameterNumber)
+	if err != nil {
+		return 0, err
 	}
-	return 0, errors.New("targetAddress out of bounds")
+
+	/*
+	if mode == relative && (int(operandAddressOrValue) + relativeBase < 0 || operandAddressOrValue + int64(relativeBase) >= int64(len(state))) {
+		return 0, errors.New("operandAddressOrValue out of bounds")
+	}
+	*/
+
+	// TODO: Bounds checks for relative addresses
+
+	switch mode {
+	case position:
+		return state[pc + parameterNumber], nil
+	case relative:
+		return state[pc + parameterNumber] + int64(relativeBase), nil
+	default:
+		return 0, errors.New("unsupported parameter mode")
+	}
 }
 
 type ParameterMode int
 const (
 	position ParameterMode = 0
 	immediate ParameterMode = 1
-	// relative ParameterMode = 2
+	relative ParameterMode = 2
 )
 
-func getParameterValue(pc int, state []int64, instruction int64, parameterNumber int) (int64, error) {
+func getParameterValue(pc int, relativeBase int, state []int64, instruction int64, parameterNumber int) (int64, error) {
 	if (pc + parameterNumber) >= len(state) {
 		return 0, errors.New("pc + parameterNumber out of bounds")
 	}
@@ -222,11 +248,20 @@ func getParameterValue(pc int, state []int64, instruction int64, parameterNumber
 	if mode == position && (operandAddressOrValue < 0 || operandAddressOrValue >= int64(len(state))) {
 		return 0, errors.New("operandAddressOrValue out of bounds")
 	}
-
-	if mode == position {
-		return state[operandAddressOrValue], nil
+	if mode == relative && (int(operandAddressOrValue) + relativeBase < 0 || operandAddressOrValue + int64(relativeBase) >= int64(len(state))) {
+		return 0, errors.New("operandAddressOrValue out of bounds")
 	}
-	return operandAddressOrValue, nil
+
+	switch mode {
+	case position:
+		return state[operandAddressOrValue], nil
+	case relative:
+		return state[int(operandAddressOrValue) + relativeBase], nil
+	case immediate:
+		return operandAddressOrValue, nil
+	default:
+		return 0, errors.New("unsupported parameter mode")
+	}
 }
 
 func getParameterMode(instruction int64, parameterNumber int) (ParameterMode, error) {
@@ -240,6 +275,8 @@ func getParameterMode(instruction int64, parameterNumber int) (ParameterMode, er
 			return position, nil
 		case 1:
 			return immediate, nil
+		case 2:
+			return relative, nil
 		default:
 			return position, errors.New("unsupported parameter mode")
 	}
@@ -249,7 +286,12 @@ func main() {
 	var input string
 	fmt.Scanln(&input)
 	initialState := parseMemory(input)
-	runProgram(initialState)
+
+	// outputChannel = make(chan int64)
+
+	workingMemory := make([]int64, len(initialState) * 10); // "much larger memory".. we use 10x as much
+	copy(workingMemory, initialState)
+	runProgram(workingMemory)
 }
 
 func parseMemory(input string) []int64 {
