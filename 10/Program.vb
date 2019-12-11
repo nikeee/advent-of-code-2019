@@ -39,6 +39,74 @@ module Day10
 		return slopesWithAsteroids.Count
 	end function
 
+	sub PrintField(field as List(of List(of Boolean)))
+		for each column in field
+			for each cell in column
+				Console.Write(if(cell, "*", " "))
+			next
+			Console.WriteLine()
+		next
+	end sub
+
+	sub RemoveAsteroids(field as List(of List(of Boolean)), width as Integer, height as Integer, origin as Vector2)
+		PrintField(field)
+
+		dim counter = 0
+		for each asteroid in EnumerateAsteroids(field, width, height, origin)
+
+			field(asteroid.y)(asteroid.x) = False
+
+			if counter = 199 then
+				Console.Write("Anwser Part 2: ")
+			end if
+
+			Console.WriteLine($"Pew #{counter + 1}: {asteroid} ({asteroid.X * 100 + asteroid.Y})")
+			counter += 1
+		next
+	end sub
+
+	iterator function EnumerateAsteroids(field as List(of List(of Boolean)), width as Integer, height as Integer, origin as Vector2) as IEnumerable(of (x as Integer, y as Integer))
+
+		dim laserDirection = Vector2.UnitY
+
+		dim currentMinimumLaserMovement as Single = 9001
+		dim nextAsteroidLocation as (x as Integer, y as Integer)?
+		dim nextLaserDirection as Vector2?
+		while True
+
+			for x as Integer = 0 to width - 1
+				for y as Integer = 0 to height - 1
+					dim isAstroid = field(y)(x)
+
+					if isAstroid then
+						dim here = new Vector2(x, y)
+						if here = origin then continue for
+
+						dim nextLaserDirectionCandidate = here - origin
+						dim laserMovement = nextLaserDirectionCandidate - laserDirection
+
+						dim angularMovement = Math.Acos(Vector2.Dot(nextLaserDirectionCandidate, laserDirection) / (nextLaserDirectionCandidate.Length() * laserDirection.Length()))
+						if angularMovement < currentMinimumLaserMovement then
+							currentMinimumLaserMovement = angularMovement
+							nextAsteroidLocation = (x, y)
+							nextLaserDirection = nextLaserDirectionCandidate
+						end if
+					end if
+				next
+			next
+
+			if nextAsteroidLocation.HasValue then
+				yield nextAsteroidLocation.Value
+				laserDirection = nextLaserDirection
+				nextAsteroidLocation = Nothing
+				currentMinimumLaserMovement = 9001
+			else
+				return
+			end if
+		end while
+
+	end function
+
 	function ReadInput() as List(of List(of Boolean))
 		dim field = new List(of List(of Boolean))
 
@@ -80,5 +148,11 @@ module Day10
 
 		Console.WriteLine()
 		Console.WriteLine($"Maximum visible asteroids (Part 1 Answer): {max}")
+
+		dim pointWithMaxAsteroids = res.Where(function(e) e.Value = max).First()
+		Console.WriteLine($"Base location: {pointWithMaxAsteroids}")
+
+		RemoveAsteroids(field, width, height, new Vector2(pointWithMaxAsteroids.Key.X, pointWithMaxAsteroids.Key.Y))
+
 	end sub
 end module
