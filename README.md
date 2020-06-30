@@ -44,3 +44,5 @@ Language Ideas:
 - Lua
 - Boo
 - F#
+- Scala
+- Scheme
