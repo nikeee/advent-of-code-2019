@@ -17,3 +17,8 @@ To see how to run the solutions of each individual day, look at its main source 
 | 8   | [Space Image Format](https://adventofcode.com/2019/day/8)                 | [Java](08)        |
 | 9   | [Sensor Boost](https://adventofcode.com/2019/day/9)                       | [Go](09)          |
 | 10  | [Monitoring Station](https://adventofcode.com/2019/day/10)                | [VB.NET](10)      |
+
+Language Ideas:
+- Zig
+- Nim
+- Crsytal
