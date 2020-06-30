@@ -22,3 +22,7 @@ Language Ideas:
 - Zig
 - Nim
 - Crsytal
+- Erlang
+- Elixir
+- Lisp
+- Prolog
