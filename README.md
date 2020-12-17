@@ -18,17 +18,16 @@ To see how to run the solutions of each individual day, look at its main source 
 | 9   | [Sensor Boost](https://adventofcode.com/2019/day/9)                       | [Go](09)          |
 | 10  | [Monitoring Station](https://adventofcode.com/2019/day/10)                | [VB.NET](10)      |
 
+[Solutions of 2020](https://github.com/nikeee/advent-of-code-2020)
+
 Language Ideas:
 - Zig
-- Nim
-- Crsytal
+- Crystal
 - Erlang
 - Elixir
 - Lisp
 - Prolog
-- D
 - Vala
-- PHP
 - Ruby
 - Perl
 - R
@@ -43,6 +42,13 @@ Language Ideas:
 - Julia
 - Lua
 - Boo
-- F#
 - Scala
 - Scheme
+- sed
+- Matlab
+- Octave
+- Pari/GP
+- Elm
+- OCaml
+- Piet
+- Groovy
