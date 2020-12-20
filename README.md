@@ -52,3 +52,5 @@ Language Ideas:
 - OCaml
 - Piet
 - Groovy
+- Haxe
+- Hack
