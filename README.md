@@ -54,3 +54,7 @@ Language Ideas:
 - Groovy
 - Haxe
 - Hack
+- Dart
+- https://github.com/ponylang/ponyc
+- https://github.com/red/red
+- https://github.com/marcobambini/gravity
