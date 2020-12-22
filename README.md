@@ -55,6 +55,7 @@ Language Ideas:
 - Haxe
 - Hack
 - Dart
+- https://github.com/vlang/v
 - https://github.com/ponylang/ponyc
 - https://github.com/red/red
 - https://github.com/marcobambini/gravity
