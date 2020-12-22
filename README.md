@@ -37,7 +37,6 @@ Language Ideas:
 - FORTRAN
 - Smalltalk
 - ML
-- Tcl
 - Forth
 - Julia
 - Lua
@@ -54,7 +53,6 @@ Language Ideas:
 - Groovy
 - Haxe
 - Hack
-- Dart
 - https://github.com/vlang/v
 - https://github.com/ponylang/ponyc
 - https://github.com/red/red
