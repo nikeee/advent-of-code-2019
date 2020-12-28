@@ -21,8 +21,6 @@ To see how to run the solutions of each individual day, look at its main source 
 [Solutions of 2020](https://github.com/nikeee/advent-of-code-2020)
 
 Language Ideas:
-- Zig
-- Crystal
 - Erlang
 - Elixir
 - Lisp
