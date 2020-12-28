@@ -49,7 +49,7 @@ Language Ideas:
 - OCaml
 - Piet
 - Groovy
-- Haxe
+- Idris
 - Hack
 - https://github.com/vlang/v
 - https://github.com/ponylang/ponyc
